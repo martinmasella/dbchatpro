@@ -4,6 +4,8 @@ using static MudBlazor.CategoryTypes;
 using System.Text.Json;
 using System.Text;
 using OpenAI.Chat;
+using Microsoft.Extensions.Configuration;
+using System.Configuration;
 
 namespace DBChatPro.Services
 {
@@ -11,13 +13,18 @@ namespace DBChatPro.Services
     {
         public static async Task<AIQuery> GetAISQLQuery(string userPrompt, AIConnection aiConnection)
         {
+            var configuration = new ConfigurationBuilder()
+                .SetBasePath(AppContext.BaseDirectory)
+                .AddJsonFile("appsettings.json", optional: true,reloadOnChange: true)
+                .Build();
+
             // Configure OpenAI client
-            string openAIEndpoint = "your-openai-endpoint";
-            string openAIKey = "your-openai-key";
-            string openAIDeploymentName = "your-model-deployment-name";
+            string openAIEndpoint = configuration.GetSection("myconfig:openai-endpoint").Value;
+            string openAIKey = configuration.GetSection("myconfig:openai-key").Value;
+            string chatclient = configuration.GetSection("myconfig:chatClient").Value;
 
             AzureOpenAIClient aiClient = new(new Uri(openAIEndpoint), new AzureKeyCredential(openAIKey));
-            ChatClient chatClient = aiClient.GetChatClient("wolfo");
+            ChatClient chatClient = aiClient.GetChatClient(chatclient);
             
             List<ChatMessage> chatHistory = new List<ChatMessage>();
             var builder = new StringBuilder();
